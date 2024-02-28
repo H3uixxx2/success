@@ -133,6 +133,7 @@ class HomeActivity : AppCompatActivity() {
 
         courseIds.forEach { courseId ->
             val query = Document("_id", courseId)
+
             coursesCollection.findOne(query).getAsync { task ->
                 if (task.isSuccess) {
                     val courseDocument = task.get()
@@ -140,6 +141,7 @@ class HomeActivity : AppCompatActivity() {
                         val title = courseDocument.getString("title")
                         val description = courseDocument.getString("description")
                         val departmentId = courseDocument.getObjectId("departmentId")
+                        val credits = courseDocument.getInteger("credits", 0)
 
                         // Fetch department name
                         val deptQuery = Document("_id", departmentId)
@@ -149,7 +151,7 @@ class HomeActivity : AppCompatActivity() {
                                 val departmentName = departmentDocument?.getString("name") ?: "Unknown"
 
                                 // Add CourseInfo with department name
-                                coursesInfo.add(CourseInfo(title, description, departmentName))
+                                coursesInfo.add(CourseInfo(title, description, departmentName, credits))
                                 checkAndPassCourses(coursesInfo, courseIds.size)
                             } else {
                                 Log.e("HomeActivity", "Error fetching department: ${deptTask.error}")

@@ -13,6 +13,7 @@ class CourseAdapter(private var courses: List<CourseInfo>) : RecyclerView.Adapte
         val titleTextView: TextView = view.findViewById(R.id.TT_data)
         val departmentTextView: TextView = view.findViewById(R.id.Depart_data)
         val descriptionTextView: TextView = view.findViewById(R.id.Desc_data)
+        val creditTextView: TextView = view.findViewById(R.id.credit_data)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CourseViewHolder {
@@ -25,6 +26,7 @@ class CourseAdapter(private var courses: List<CourseInfo>) : RecyclerView.Adapte
         holder.titleTextView.text = course.title
         holder.departmentTextView.text = course.departmentName // Display department name
         holder.descriptionTextView.text = course.description
+        holder.creditTextView.text = course.credits.toString()
     }
 
     override fun getItemCount() = courses.size

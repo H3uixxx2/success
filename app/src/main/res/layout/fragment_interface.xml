@@ -53,12 +53,10 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/lionDominationTextView" />
 
-    <ListView
-        android:id="@+id/listView"
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/my_recycler_view1"
         android:layout_width="match_parent"
         android:layout_height="400dp"
-        android:divider="@android:color/transparent"
-        android:dividerHeight="10dp"
         android:layout_below="@+id/learnToEarnTextView"
         android:layout_marginTop="10dp"
         android:layout_marginBottom="2dp" />

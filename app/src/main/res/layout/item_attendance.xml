@@ -8,7 +8,7 @@
     <View
         android:id="@+id/rectangle_1"
         android:layout_width="401dp"
-        android:layout_height="193dp"
+        android:layout_height="300dp"
         android:layout_marginTop="4dp"
         android:background="@drawable/rectangle"
         app:layout_constraintEnd_toEndOf="parent"
@@ -21,7 +21,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_marginTop="24dp"
-        android:text="Subject Name:"
+        android:text="Title:"
         android:textSize="30dp"
         app:layout_constraintStart_toStartOf="@+id/rectangle_1"
         app:layout_constraintTop_toTopOf="@+id/rectangle_1" />

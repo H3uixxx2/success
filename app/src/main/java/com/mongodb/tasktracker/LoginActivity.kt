@@ -1,6 +1,7 @@
 package com.mongodb.tasktracker
 
 import android.content.Intent
+import android.net.ConnectivityManager
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
@@ -14,6 +15,7 @@ import io.realm.mongodb.AppConfiguration
 import io.realm.mongodb.Credentials
 import org.bson.Document
 import at.favre.lib.crypto.bcrypt.BCrypt
+import org.bson.AbstractBsonWriter
 
 
 class LoginActivity : AppCompatActivity() {
@@ -36,7 +38,6 @@ class LoginActivity : AppCompatActivity() {
         // Khởi tạo Realm
         Realm.init(this)
         val appConfiguration = AppConfiguration.Builder("finalproject-rujev").build()
-
         app = App(appConfiguration)
 
         // Di chuyển đoạn mã này vào trong loginAsync
@@ -64,6 +65,7 @@ class LoginActivity : AppCompatActivity() {
             Login(username, password)
         }
     }
+
     private fun fetchData() {
         val user = app.currentUser()
         val mongoClient = user!!.getMongoClient("mongodb-atlas")
@@ -103,39 +105,25 @@ class LoginActivity : AppCompatActivity() {
             return
         }
 
-        val user = app.currentUser()
-        val mongoClient = user!!.getMongoClient("mongodb-atlas")
+        val mongoClient = app.currentUser()!!.getMongoClient("mongodb-atlas")
         val database = mongoClient.getDatabase("finalProject")
         val collection = database.getCollection("Users")
 
-        // Tạo query với email
+        //tạo query với email
         val query = Document("details.email", email)
 
         collection.findOne(query).getAsync { task ->
             if (task.isSuccess) {
                 val userDocument = task.get()
-                Log.v("LoginActivity", "userDocument: ${userDocument.toJson()}")
                 if (userDocument != null) {
-                    // Lấy hash mật khẩu từ cơ sở dữ liệu
                     val storedPasswordHash = userDocument.getString("password")
-
-                    // Sử dụng BCrypt để kiểm tra mật khẩu
                     val result = BCrypt.verifyer().verify(password.toCharArray(), storedPasswordHash)
                     if (result.verified) {
-                        // Đăng nhập thành công
-                        Log.v("Login", "Đăng nhập thành công với người dùng: ${userDocument.toJson()}")
+                        Log.v("Login", "Đăng nhập thành công!")
                         rememberAccount(email, password, rememberMeCheckBox.isChecked)
 
-                        // Sử dụng toán tử Elvis để xử lý trường hợp null
-                        val details = userDocument.get("details") as? Document
-                        val userEmail = details?.getString("email") as? String ?: run {
-                            Log.e("LoginActivity", "Email không tìm thấy hoặc null")
-                            return@getAsync
-                        }
-
-                        // Chuyển sang HomeActivity với email
                         val homeIntent = Intent(this, HomeActivity::class.java).apply {
-                            putExtra("USER_EMAIL", userEmail)
+                            putExtra("USER_EMAIL", email)
                             putExtra("SHOW_INFOR_FRAGMENT", false)
                         }
                         startActivity(homeIntent)

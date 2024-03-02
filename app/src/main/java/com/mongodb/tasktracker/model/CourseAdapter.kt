@@ -14,6 +14,7 @@ class CourseAdapter(private var courses: List<CourseInfo>) : RecyclerView.Adapte
         val departmentTextView: TextView = view.findViewById(R.id.Depart_data)
         val descriptionTextView: TextView = view.findViewById(R.id.Desc_data)
         val creditTextView: TextView = view.findViewById(R.id.credit_data)
+        //thêm vào các view khác nếu cần
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CourseViewHolder {

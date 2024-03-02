@@ -6,6 +6,7 @@ import android.util.Log
 import androidx.fragment.app.Fragment
 import com.mongodb.tasktracker.databinding.ActivityHomeBinding
 import com.mongodb.tasktracker.model.CourseInfo
+import com.mongodb.tasktracker.model.SlotInfo
 import io.realm.Realm
 import com.mongodb.tasktracker.model.User
 import io.realm.*
@@ -91,6 +92,9 @@ class HomeActivity : AppCompatActivity() {
                     //lấy danh sách enrolledCourses
                     val enrolledCourses = studentDocument.getList("enrolledCourses", ObjectId::class.java)
                     fetchCoursesData(enrolledCourses)
+
+                    // Gọi fetchSlotsData sau khi dữ liệu sinh viên được lấy thành công
+                    fetchSlotsData()
 
                 } else {
                     // Xử lý trường hợp không tìm thấy sinh viên
@@ -184,6 +188,79 @@ class HomeActivity : AppCompatActivity() {
                 putSerializable("courses", ArrayList(coursesInfo))
             }
             replaceFragment(it)
+        }
+    }
+
+    private fun fetchSlotsData() {
+        val mongoClient = app.currentUser()!!.getMongoClient("mongodb-atlas")
+        val database = mongoClient.getDatabase("finalProject")
+        val slotsCollection = database.getCollection("Slots")
+
+        slotsCollection.count().getAsync { countTask ->
+            if (countTask.isSuccess) {
+                val totalCount = countTask.get().toInt()
+                val slotsData = mutableListOf<SlotInfo>()
+                var processedCount = 0
+
+                slotsCollection.find().iterator().getAsync { task ->
+                    if (task.isSuccess) {
+                        val results = task.get()
+                        results.forEach { slotDocument ->
+                            val courseId = slotDocument.getObjectId("courseId")
+
+                            // Fetch course data for each slot
+                            fetchCourseDataForSlot(courseId, slotsData) {
+                                processedCount++
+                                if (processedCount == totalCount) {
+                                    // Gửi dữ liệu đến InterfaceFragment khi đã xử lý xong slot cuối cùng
+                                    sendSlotsDataToInterfaceFragment(slotsData)
+                                }
+                            }
+                        }
+                    } else {
+                        Log.e("HomeActivity", "Error fetching slots: ${task.error}")
+                    }
+                }
+            } else {
+                Log.e("HomeActivity", "Error counting slots: ${countTask.error}")
+            }
+        }
+    }
+
+    private fun fetchCourseDataForSlot(courseId: ObjectId, slotsData: MutableList<SlotInfo>, onComplete: () -> Unit) {
+        val mongoClient = app.currentUser()!!.getMongoClient("mongodb-atlas")
+        val coursesCollection = mongoClient.getDatabase("finalProject").getCollection("Courses")
+
+        coursesCollection.findOne(Document("_id", courseId)).getAsync { courseTask ->
+            if (courseTask.isSuccess) {
+                val courseDocument = courseTask.get()
+                val courseTitle = courseDocument.getString("title")
+
+                val slotInfo = SlotInfo(
+                    startTime = "", // Set appropriate value
+                    endTime = "", // Set appropriate value
+                    day = "", // Set appropriate value
+                    courseId = courseId.toString(),
+                    courseTitle = courseTitle
+                )
+                slotsData.add(slotInfo)
+
+                onComplete() // Gọi hàm callback khi xử lý xong
+            }
+        }
+    }
+
+
+    private fun sendSlotsDataToInterfaceFragment(slotsData: List<SlotInfo>) {
+        val interfaceFragment = InterfaceFragment().apply {
+            arguments = Bundle().apply {
+                putSerializable("slotsData", ArrayList(slotsData))
+            }
+        }
+
+        supportFragmentManager.beginTransaction().apply {
+            replace(R.id.frame_layout, interfaceFragment)
+            commit()
         }
     }
 

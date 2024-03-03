@@ -25,6 +25,7 @@ class HomeActivity : AppCompatActivity() {
     private var departmentName: String? = null
 
     private var coursesInfo: List<CourseInfo>? = null
+    private var slotsData: List<SlotInfo>?= null
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -47,16 +48,7 @@ class HomeActivity : AppCompatActivity() {
         binding.bottomNavigationView.setOnItemSelectedListener {
             when (it.itemId) {
                 R.id.userInterface -> replaceFragment(InterfaceFragment())
-                R.id.user -> {
-                    val inforFragment = InforFragment().apply {
-                        arguments = Bundle().apply {
-                            putString("name", studentName ?: "N/A")
-                            putString("email", studentEmail ?: "N/A")
-                            putString("department", departmentName ?: "N/A")
-                        }
-                    }
-                    replaceFragment(inforFragment)
-                }
+                R.id.user -> replaceFragment(InforFragment())
                 R.id.gear -> replaceFragment(GearFragment())
                 R.id.shop -> replaceFragment(ShopFragment())
                 else -> { }
@@ -251,21 +243,24 @@ class HomeActivity : AppCompatActivity() {
     }
 
 
-    private fun sendSlotsDataToInterfaceFragment(slotsData: List<SlotInfo>) {
+    private fun sendSlotsDataToInterfaceFragment(data: List<SlotInfo>) {
+        slotsData = data
         val interfaceFragment = InterfaceFragment().apply {
             arguments = Bundle().apply {
-                putSerializable("slotsData", ArrayList(slotsData))
+                putSerializable("slotsData", ArrayList(data))
             }
         }
-
-        supportFragmentManager.beginTransaction().apply {
-            replace(R.id.frame_layout, interfaceFragment)
-            commit()
-        }
+        replaceFragment(interfaceFragment)
     }
 
+
     private fun replaceFragment(fragment: Fragment) {
-        if (fragment is InforFragment && coursesInfo != null) {
+        // Kiểm tra và cập nhật dữ liệu cho InterfaceFragment hoặc InforFragment nếu cần
+        if (fragment is InterfaceFragment && slotsData != null) {
+            fragment.arguments = Bundle().apply {
+                putSerializable("slotsData", ArrayList(slotsData))
+            }
+        } else if (fragment is InforFragment && coursesInfo != null) {
             fragment.arguments = Bundle().apply {
                 putString("name", studentName ?: "N/A")
                 putString("email", studentEmail ?: "N/A")
@@ -273,9 +268,12 @@ class HomeActivity : AppCompatActivity() {
                 putSerializable("courses", ArrayList(coursesInfo))
             }
         }
-        val fragmentManager = supportFragmentManager
-        val fragmentTransaction = fragmentManager.beginTransaction()
-        fragmentTransaction.replace(R.id.frame_layout, fragment, fragment.javaClass.simpleName)
-        fragmentTransaction.commit()
+
+        // Thực hiện thay thế Fragment
+        supportFragmentManager.beginTransaction().apply {
+            replace(R.id.frame_layout, fragment, fragment.javaClass.simpleName)
+            commit()
+        }
     }
+
 }
